@@ -23,6 +23,7 @@
         <module>groovy-metaprogramming</module>
         <module>groovy-metaprogramming-client</module>
         <module>elasticsearch</module>
+        <module>cglib</module>
     </modules>
 
     <parent>
@@ -351,6 +352,13 @@
                 <groupId>com.ggj.center</groupId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
+
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib</artifactId>
+                <version>3.3.0</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
