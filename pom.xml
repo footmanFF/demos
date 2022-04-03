@@ -24,6 +24,7 @@
         <module>elasticsearch</module>
         <module>cglib</module>
         <module>apache-common</module>
+        <module>dozer</module>
     </modules>
 
     <parent>
