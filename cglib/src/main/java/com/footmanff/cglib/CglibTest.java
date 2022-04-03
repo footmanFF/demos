@@ -16,6 +16,7 @@ public class CglibTest {
         Dao dao = (Dao) enhancer.create();
         dao.update();
         dao.select();
+        dao.haveReturn();
     }
 
 }
