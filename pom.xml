@@ -40,6 +40,12 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>1.10.0</version>
+            </dependency>
+
+            <dependency>
                 <groupId>net.andreinc.mockneat</groupId>
                 <artifactId>mockneat</artifactId>
                 <version>0.1.7</version>
@@ -263,11 +269,11 @@
                 <version>2.4.12</version>
             </dependency>
 
-            <dependency>
-                <groupId>joinery</groupId>
-                <artifactId>joinery-dataframe</artifactId>
-                <version>1.8</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>joinery</groupId>-->
+<!--                <artifactId>joinery-dataframe</artifactId>-->
+<!--                <version>1.8</version>-->
+<!--            </dependency>-->
 
             <dependency>
                 <groupId>org.apache.poi</groupId>
