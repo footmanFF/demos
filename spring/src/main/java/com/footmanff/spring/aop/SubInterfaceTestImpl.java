@@ -28,5 +28,8 @@ public class SubInterfaceTestImpl implements SubInterfaceTest{
     public String getString() {
         return "hi boy";
     }
-    
+
+    public static void main(String[] args) {
+        String[] a = ",,,,,".split(",");
+    }
 }
