@@ -2,7 +2,6 @@ package com.footmanff.jdktest.collection;
 
 import org.junit.Test;
 
-import javax.swing.tree.TreeNode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,6 +47,10 @@ public class HashMapTest {
             map.put(key, "v");
         }
         map.remove("k1");
+
+        map.forEach((k, v) -> {
+            //
+        });
 
         for (Map.Entry<String, String> entry : map.entrySet()) {
             entry.getKey();
