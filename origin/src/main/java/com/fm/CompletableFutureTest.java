@@ -1,9 +1,76 @@
 package com.fm;
 
-import java.util.concurrent.CompletableFuture;
+import org.junit.Test;
 
-public class Main3 {
-    public static void main(String[] args) throws Exception {
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+public class CompletableFutureTest {
+
+    @Test
+    public void t5() throws Exception {
+        CompletableFuture<String> resultFuture = new CompletableFuture<>();
+
+        System.out.println(resultFuture.get());
+        
+        System.out.println("end");
+    }
+
+    @Test
+    public void t4() throws Exception {
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000L);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            future.complete("123");
+        }).start();
+        System.out.println("start");
+
+        System.out.println(future.get(10, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void t3() throws Exception {
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            return "A";
+        });
+        /*
+         * 前一个future执行完，继续执行 thenCompose 指定的函数，并用上一个future执行的结果作为参数
+         */
+        future.thenCompose(param -> {
+            return CompletableFuture.supplyAsync(() -> {
+                return param + " > B";
+            });
+        }).thenAccept(result -> {
+            System.out.println("accept: " + result);
+        }).whenComplete((r, t) -> {
+            System.out.println("accept: " + r + " " + t);
+        });
+    }
+
+    @Test
+    public void t2() throws Exception {
+        System.out.println("start");
+        CompletableFuture<String> future = new CompletableFuture<>();
+        Thread t = new Thread(() -> {
+            try {
+                Thread.sleep(3000L);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            future.complete("A");
+        });
+        t.start();
+        t.join();
+        System.out.println(future.get());
+    }
+
+    @Test
+    public void t1() throws Exception {
         // 两个CompletableFuture执行异步查询:
         CompletableFuture<String> cfQueryFromSina = CompletableFuture.supplyAsync(() -> {
             return queryCode("中国石油", "https://finance.sina.com.cn/code/");
