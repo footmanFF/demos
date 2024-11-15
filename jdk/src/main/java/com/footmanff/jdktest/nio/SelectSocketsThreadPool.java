@@ -28,7 +28,7 @@ public class SelectSocketsThreadPool extends SelectSockets {
 
     public static void main(String[] argv)
             throws Exception {
-        new SelectSocketsThreadPool().go(argv);
+        new SelectSocketsThreadPool().go();
     }
 
     // -------------------------------------------------------------
