@@ -18,7 +18,7 @@ import java.util.List;
  * @author Ron Hitchens (ron@ronsoft.com)
  * @version $Id: SelectSocketsThreadPool.java,v 1.5 2002/05/20 07:24:29 ron Exp $
  */
-public class SelectSocketsThreadPool extends SelectSockets {
+public class SelectSocketsThreadPool extends NioServer {
     
     private static final int MAX_THREADS = 5;
 

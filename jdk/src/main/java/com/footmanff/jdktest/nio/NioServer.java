@@ -9,12 +9,12 @@ import java.util.Iterator;
 /**
  * @author footmanff on 2017/11/23.
  */
-public class SelectSockets {
+public class NioServer {
 
     public static final int MAX_LENGTH = 1024;
 
     public static void main(String[] argv) throws Exception {
-        new SelectSockets().go();
+        new NioServer().go();
     }
 
     public void go() throws Exception {
