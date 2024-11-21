@@ -1,5 +1,7 @@
 package com.footmanff.jdktest.nio;
 
+import cn.hutool.core.util.ObjectUtil;
+
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -63,9 +65,13 @@ public class SubReactor implements Runnable {
                     SocketChannel socketChannel = (SocketChannel) key.channel();
                     ByteBuffer requestBuffer = null;
                     try {
-                        requestBuffer = readDataFromSocket(socketChannel);
-                        key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-                        key.attach(requestBuffer);
+                        // requestBuffer = readDataFromSocket(socketChannel);
+                        Message message = readDataFromSocket2(socketChannel);
+                        
+                        log(message.toString());
+                        
+                        // key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+                        // key.attach(requestBuffer);
                     } catch (ChannelClosedException e) {
                         log("SubReactor-" + this.num + " 客户端断开连接");
                         key.cancel();
@@ -108,6 +114,27 @@ public class SubReactor implements Runnable {
         }
         buffer.flip();
         return buffer;
+    }
+
+    /**
+     * 解决粘包、分包版本
+     */
+    protected Message readDataFromSocket2(SocketChannel socketChannel) throws Exception {
+        // 读第一个整形，标记消息体内容长度
+        ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
+        int read = socketChannel.read(lengthBuffer);
+        while (read != 4) {
+            read += socketChannel.read(lengthBuffer);
+        }
+        int length = lengthBuffer.getInt(0);
+        
+        // 根据消息体长度，读消息体
+        ByteBuffer dataBuffer = ByteBuffer.allocate(length);
+        read = socketChannel.read(dataBuffer);
+        while (read != length) {
+            read += socketChannel.read(dataBuffer);
+        }
+        return ObjectUtil.deserialize(dataBuffer.array(), Message.class);
     }
 
     private void log(String s) {
