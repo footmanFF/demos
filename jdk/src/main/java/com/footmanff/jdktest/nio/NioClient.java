@@ -15,11 +15,11 @@ public class NioClient {
 
     public void start2() throws Exception {
         Scanner scanner = new Scanner(System.in);
-        log("模式 1-单线程命令 2-多线程，循环开启-读写数据-关闭连接 3-粘包、分包问题测试");
+        log("模式 1-单线程命令（解决粘包、分包） 2-多线程，循环开启-读写数据-关闭连接");
         String mode = scanner.next();
 
         if ("1".equals(mode)) {
-            new NioClient().start();
+            new NioClient().start3();
         } else if ("2".equals(mode)) {
             log("输入线程数");
             String thread = scanner.next();
@@ -32,8 +32,6 @@ public class NioClient {
             }
             new NioClient().startMultiThread(t);
             scanner.next();
-        } else if ("3".equals(mode)) {
-            new NioClient().start3();
         } else {
             log("模式不合法");
         }
@@ -42,36 +40,12 @@ public class NioClient {
     public void startMultiThread(Integer thread) throws Exception {
         SocketAddress sa = new InetSocketAddress("127.0.0.1", 8081);
         for (int i = 0; i < thread; i++) {
-            final int idx = i;
             new Thread(() -> {
                 try {
                     while (true) {
                         SocketChannel channel = SocketChannel.open(sa);
                         channel.configureBlocking(false);
-    
-                        byte[] data = "测试内容123".getBytes();
-    
-                        ByteBuffer buffer = ByteBuffer.allocate(1024);
-                        buffer.put(data);
-                        buffer.flip();
-                        while (buffer.hasRemaining()) {
-                            channel.write(buffer);
-                        }
-                        log("thread " + idx + " write");
-                        buffer.clear();
-    
-                        // 等待服务端传回数据了再读取
-                        Thread.sleep(500L);
-    
-                        ByteBuffer readBuffer = buffer;
-                        while (true) {
-                            int r = channel.read(readBuffer);
-                            if (r <= 0) {
-                                break;
-                            }
-                            printResult(readBuffer);
-                        }
-
+                        sendAndReceive("测试内容123", channel);
                         channel.close();
                     }
                 } catch (Throwable e) {
@@ -80,10 +54,6 @@ public class NioClient {
             }).start();
         }
     }
-    
-    // ObjectUtil#serialize
-    // ObjectUtil#deserialize
-    
     
     public void start3() throws Exception {
         SocketAddress sa = new InetSocketAddress("127.0.0.1", 8081);
@@ -99,32 +69,44 @@ public class NioClient {
             }
             log("input: " + input);
             
-            Message message = new Message();
-            message.setContent(input);
-
-            byte[] data = ObjectUtil.serialize(message);
-            ByteBuffer buffer = ByteBuffer.allocate(4 + data.length);
-            buffer.putInt(data.length);
-            buffer.put(data);
-            buffer.flip();
-            while (buffer.hasRemaining()) {
-                channel.write(buffer);
-            }
-            log("write");
-            buffer.clear();
-
-            // 等待服务端传回数据了再读取
-            Thread.sleep(500L);
-
-            ByteBuffer readBuffer = buffer;
-            while (true) {
-                int r = channel.read(readBuffer);
-                if (r <= 0) {
-                    break;
-                }
-                printResult(readBuffer);
-            }
+            sendAndReceive(input, channel);
         }
+    }
+    
+    private void sendAndReceive(String input, SocketChannel channel) throws Exception {
+        Message message = new Message();
+        message.setContent(input);
+
+        byte[] data = ObjectUtil.serialize(message);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + data.length);
+        buffer.putInt(data.length);
+        buffer.put(data);
+        buffer.flip();
+        while (buffer.hasRemaining()) {
+            channel.write(buffer);
+        }
+        log("write");
+        buffer.clear();
+
+        // 等待服务端传回数据了再读取
+        Thread.sleep(500L);
+
+        // 读第一个整形，标记消息体内容长度
+        ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
+        int read = channel.read(lengthBuffer);
+        while (read != 4) {
+            read += channel.read(lengthBuffer);
+        }
+        int length = lengthBuffer.getInt(0);
+
+        // 根据消息体长度，读消息体
+        ByteBuffer dataBuffer = ByteBuffer.allocate(length);
+        read = channel.read(dataBuffer);
+        while (read != length) {
+            read += channel.read(dataBuffer);
+        }
+        Message result = ObjectUtil.deserialize(dataBuffer.array(), Message.class);
+        log("返回结果 " + result.toString());
     }
 
     public void start() throws Exception {
