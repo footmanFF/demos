@@ -41,15 +41,24 @@ public class NioClient {
         SocketAddress sa = new InetSocketAddress("127.0.0.1", 8081);
         for (int i = 0; i < thread; i++) {
             new Thread(() -> {
+                SocketChannel channel = null;
                 try {
                     while (true) {
-                        SocketChannel channel = SocketChannel.open(sa);
+                        channel = SocketChannel.open(sa);
                         channel.configureBlocking(false);
                         sendAndReceive("测试内容123", channel);
                         channel.close();
                     }
                 } catch (Throwable e) {
                     e.printStackTrace();
+                } finally {
+                    if (channel != null) {
+                        try {
+                            channel.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }).start();
         }
