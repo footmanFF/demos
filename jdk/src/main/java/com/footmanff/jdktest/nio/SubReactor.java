@@ -49,7 +49,7 @@ public class SubReactor implements Runnable {
 
     private void run_() throws Exception {
         while (true) {
-            log("SubReactor-" + num + " select() 开始执行");
+            // log("SubReactor-" + num + " select() 开始执行");
             int r = selector.select();
             SocketChannel acceptChannel;
             while ((acceptChannel = queue.poll()) != null) {
@@ -65,7 +65,7 @@ public class SubReactor implements Runnable {
                     SocketChannel socketChannel = (SocketChannel) key.channel();
                     try {
                         Message message = readDataFromSocket2(socketChannel);
-                        log(message.toString());
+                        // log(message.toString());
                         key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
                         key.attach(message);
                     } catch (ChannelClosedException e) {
@@ -89,7 +89,7 @@ public class SubReactor implements Runnable {
                         
                         while (buffer.hasRemaining()) {
                             int result = socketChannel.write(buffer);
-                            log("写入字节数：" + result);
+                            // log("写入字节数：" + result);
                             if (result <= 0) {
                                 break;
                             }

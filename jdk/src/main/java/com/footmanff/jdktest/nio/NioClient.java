@@ -10,6 +10,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 
 public class NioClient {
 
@@ -31,7 +32,7 @@ public class NioClient {
                 return;
             }
             new NioClient().startMultiThread(t);
-            scanner.next();
+            new CountDownLatch(1).await();
         } else {
             log("模式不合法");
         }
@@ -46,8 +47,17 @@ public class NioClient {
                     while (true) {
                         channel = SocketChannel.open(sa);
                         channel.configureBlocking(false);
-                        sendAndReceive("测试内容123", channel);
-                        channel.close();
+                        try {
+                            sendAndReceive("测试内容123", channel);
+                        } catch (ChannelClosedException e) {
+                            log("服务端关闭了连接");
+                            continue;
+                        } catch (IOException e) {
+                            log("IOException " + e.getMessage());
+                            continue;
+                        } finally {
+                            channel.close();
+                        }
                     }
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -94,7 +104,7 @@ public class NioClient {
         while (buffer.hasRemaining()) {
             channel.write(buffer);
         }
-        log("write");
+        // log("write");
         buffer.clear();
 
         // 等待服务端传回数据了再读取
@@ -102,19 +112,18 @@ public class NioClient {
 
         // 读第一个整形，标记消息体内容长度
         ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
-        int read = channel.read(lengthBuffer);
-        while (read != 4) {
-            read += channel.read(lengthBuffer);
-        }
+
+        IOUtil.read(channel, lengthBuffer, 4);
+        
         int length = lengthBuffer.getInt(0);
 
         // 根据消息体长度，读消息体
         ByteBuffer dataBuffer = ByteBuffer.allocate(length);
-        read = channel.read(dataBuffer);
-        while (read != length) {
-            read += channel.read(dataBuffer);
-        }
+
+        IOUtil.read(channel, dataBuffer, length);
+
         Message result = ObjectUtil.deserialize(dataBuffer.array(), Message.class);
+        
         log("返回结果 " + result.toString());
     }
 

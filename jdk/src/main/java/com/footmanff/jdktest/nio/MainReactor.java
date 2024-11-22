@@ -58,7 +58,7 @@ public class MainReactor implements Runnable {
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         while (true) {
-            log("MainReactor select() 开始执行");
+            // log("MainReactor select() 开始执行");
             if (selector.select() == 0) {
                 continue;
             }
@@ -66,7 +66,7 @@ public class MainReactor implements Runnable {
             while (it.hasNext()) {
                 SelectionKey key = it.next();
                 if (key.isAcceptable()) {
-                    log("MainReactor accept");
+                    // log("MainReactor accept");
                     ServerSocketChannel server = (ServerSocketChannel) key.channel();
                     SocketChannel acceptChannel = server.accept();
                     acceptChannel.configureBlocking(false);

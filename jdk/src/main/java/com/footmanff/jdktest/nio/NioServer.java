@@ -55,7 +55,7 @@ public class NioServer {
                     if (requestBuffer != null) {
                         while (requestBuffer.hasRemaining()) {
                             int result = socketChannel.write(requestBuffer);
-                            log("写入字节数：" + result);
+                            // log("写入字节数：" + result);
                             if (result <= 0) {
                                 break;
                             }
