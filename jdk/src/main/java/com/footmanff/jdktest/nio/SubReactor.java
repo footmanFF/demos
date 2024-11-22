@@ -105,19 +105,6 @@ public class SubReactor implements Runnable {
         }
     }
 
-    protected ByteBuffer readDataFromSocket(SocketChannel socketChannel) throws Exception {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        int num = socketChannel.read(buffer);
-        if (num == -1) {
-            throw new ChannelClosedException("连接断开?");
-        }
-        if (num > 0) {
-            log("读取字节数：" + num);
-        }
-        buffer.flip();
-        return buffer;
-    }
-
     /**
      * 解决粘包、分包版本
      */
