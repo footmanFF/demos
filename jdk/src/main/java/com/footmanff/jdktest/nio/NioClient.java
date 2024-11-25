@@ -14,6 +14,11 @@ import java.util.concurrent.CountDownLatch;
 
 public class NioClient {
 
+    public static void main(String[] args) throws Exception {
+        NioClient nioClient = new NioClient();
+        nioClient.start2();
+    }
+
     public void start2() throws Exception {
         Scanner scanner = new Scanner(System.in);
         log("模式 1-单线程命令（解决粘包、分包） 2-多线程，循环开启-读写数据-关闭连接");
@@ -73,7 +78,7 @@ public class NioClient {
             }).start();
         }
     }
-    
+
     public void start3() throws Exception {
         SocketAddress sa = new InetSocketAddress("127.0.0.1", 8081);
         SocketChannel channel = SocketChannel.open(sa);
@@ -87,11 +92,11 @@ public class NioClient {
                 return;
             }
             log("input: " + input);
-            
+
             sendAndReceive(input, channel);
         }
     }
-    
+
     private void sendAndReceive(String input, SocketChannel channel) throws Exception {
         Message message = new Message();
         message.setContent(input);
@@ -114,7 +119,7 @@ public class NioClient {
         ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
 
         IOUtil.read(channel, lengthBuffer, 4);
-        
+
         int length = lengthBuffer.getInt(0);
 
         // 根据消息体长度，读消息体
@@ -123,7 +128,7 @@ public class NioClient {
         IOUtil.read(channel, dataBuffer, length);
 
         Message result = ObjectUtil.deserialize(dataBuffer.array(), Message.class);
-        
+
         log("返回结果 " + result.toString());
     }
 

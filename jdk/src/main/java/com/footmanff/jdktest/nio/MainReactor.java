@@ -22,6 +22,11 @@ public class MainReactor implements Runnable {
 
     private final AtomicReference<Boolean> state = new AtomicReference<>(Boolean.FALSE);
 
+    public static void main(String[] args) throws Exception {
+        MainReactor mainReactor = new MainReactor();
+        mainReactor.start();
+    }
+    
     public MainReactor() throws Exception {
         seq = new AtomicInteger(0);
         subReactorList = new ArrayList<>();
