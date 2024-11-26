@@ -7,7 +7,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SubReactor implements Runnable {
@@ -17,12 +17,14 @@ public class SubReactor implements Runnable {
     private Thread thread;
     private final AtomicReference<Boolean> state = new AtomicReference<>(Boolean.FALSE);
     private final ConcurrentLinkedDeque<SocketChannel> queue;
+    private final ThreadPoolExecutor pool;
 
     public SubReactor(int num) throws Exception {
         this.num = num;
         selector = Selector.open();
         thread = new Thread(this, "SubReactor-" + this.num);
         queue = new ConcurrentLinkedDeque<>();
+        pool = new ThreadPoolExecutor(16, 16, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(5000));
     }
 
     public void register(SocketChannel acceptChannel) throws Exception {
@@ -66,8 +68,21 @@ public class SubReactor implements Runnable {
                     try {
                         Message message = readDataFromSocket(socketChannel);
                         log(message.toString());
-                        key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-                        key.attach(message);
+
+                        pool.submit(() -> {
+                            try {
+                                Thread.sleep(500L);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            Response response = new Response();
+                            response.setCode("SUCCESS");
+                            response.setMsg(message.getContent());
+
+                            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+                            key.attach(response);
+                            selector.wakeup();
+                        });
                     } catch (ChannelClosedException e) {
                         log("SubReactor-" + this.num + " 客户端断开连接");
                         key.cancel();
@@ -79,14 +94,14 @@ public class SubReactor implements Runnable {
                     }
                 } else if (key.isWritable()) {
                     SocketChannel socketChannel = (SocketChannel) key.channel();
-                    Message message = (Message) key.attachment();
-                    if (message != null) {
-                        byte[] data = ObjectUtil.serialize(message);
+                    Response response = (Response) key.attachment();
+                    if (response != null) {
+                        byte[] data = ObjectUtil.serialize(response);
                         ByteBuffer buffer = ByteBuffer.allocate(4 + data.length);
                         buffer.putInt(data.length);
                         buffer.put(data);
                         buffer.flip();
-                        
+
                         while (buffer.hasRemaining()) {
                             int result = socketChannel.write(buffer);
                             // log("写入字节数：" + result);
@@ -113,13 +128,13 @@ public class SubReactor implements Runnable {
         ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
         read(socketChannel, lengthBuffer, 4);
         int length = lengthBuffer.getInt(0);
-        
+
         // 根据消息体长度，读消息体
         ByteBuffer dataBuffer = ByteBuffer.allocate(length);
         read(socketChannel, dataBuffer, length);
         return ObjectUtil.deserialize(dataBuffer.array(), Message.class);
     }
-    
+
     private void read(SocketChannel socketChannel, ByteBuffer byteBuffer, int max) throws Exception {
         int read = socketChannel.read(byteBuffer);
         if (read == -1) {

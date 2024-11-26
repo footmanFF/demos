@@ -127,7 +127,7 @@ public class NioClient {
 
         IOUtil.read(channel, dataBuffer, length);
 
-        Message result = ObjectUtil.deserialize(dataBuffer.array(), Message.class);
+        Response result = ObjectUtil.deserialize(dataBuffer.array(), Response.class);
 
         log("返回结果 " + result.toString());
     }
