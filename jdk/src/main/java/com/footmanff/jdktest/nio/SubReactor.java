@@ -64,7 +64,7 @@ public class SubReactor implements Runnable {
                 if (key.isReadable()) {
                     SocketChannel socketChannel = (SocketChannel) key.channel();
                     try {
-                        Message message = readDataFromSocket2(socketChannel);
+                        Message message = readDataFromSocket(socketChannel);
                         log(message.toString());
                         key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
                         key.attach(message);
@@ -108,7 +108,7 @@ public class SubReactor implements Runnable {
     /**
      * 解决粘包、分包版本
      */
-    protected Message readDataFromSocket2(SocketChannel socketChannel) throws Exception {
+    protected Message readDataFromSocket(SocketChannel socketChannel) throws Exception {
         // 读第一个整形，标记消息体内容长度
         ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
         read(socketChannel, lengthBuffer, 4);
